@@ -1,0 +1,106 @@
+1、含指针成员，指针指向的底层对象拷贝(深拷贝)
+#include <iostream>
+#include <string>
+
+class HasPtr
+{
+public:
+	HasPtr(const HasPtr &rhs);
+	void swap(HasPtr rhs);//注意这里不是引用
+	HasPtr& operator=(const HasPtr &rhs);
+	~HasPtr();
+protected:
+private:
+	std::string *m_pString;
+	int i;
+};
+
+HasPtr::HasPtr(const HasPtr &rhs):m_pString(new std::string(*rhs.m_pString)), i(0)
+{
+
+}
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs)
+{
+	std::string *pString = new std::string(*rhs.m_pString);
+	delete m_pString;
+	m_pString = pString;
+
+	i = rhs.i;
+
+	return *this;
+}
+
+//使用copy ans swap技术的赋值运算符
+void HasPtr::swap(HasPtr rhs)
+{
+	using std::swap;
+	swap(this->m_pString, rhs.m_pString);
+	swap(this->i, rhs.i);
+}
+HasPtr& HasPtr::operator=(const HasPtr &rhs)
+{
+	swap(rhs);
+	return *this;
+}
+
+2、含指针成员，同一个底层对象通过指针在不同对象中共享(浅拷贝,带引用计数)
+#include <iostream>
+#include <string>
+
+class HasPtr
+{
+public:
+	HasPtr(const std::string &s = std::string());
+	HasPtr(const HasPtr &rhs);
+	HasPtr& operator=(const HasPtr &rhs);
+	~HasPtr();
+protected:
+private:
+	std::string *m_pString;
+	int i;
+
+	std::size_t *use;
+};
+
+HasPtr::HasPtr(const std::string &s = std::string()) :m_pString(new std::string(s)), i(0), use(new std::size_t(1))
+{
+
+}
+
+HasPtr::HasPtr(const HasPtr &rhs) :m_pString(rhs.m_pString), i(rhs.i), use(rhs.use)
+{
+	++*use;
+}
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs)
+{
+	++*rhs.use;
+
+	if (--*use == 0)
+	{
+		delete m_pString;
+		m_pString = nullptr;
+		delete use;
+		use = nullptr;
+	}
+
+	m_pString = rhs.m_pString;
+
+	i = rhs.i;
+
+	use = rhs.use;
+
+	return *this;
+}
+
+HasPtr::~HasPtr()
+{
+	if (--*use == 0)
+	{
+		delete m_pString;
+		m_pString = nullptr;
+		delete use;
+		use = nullptr;
+	}
+}
