@@ -1,0 +1,18 @@
+//空文件夹下面git bash here,然后git init
+git init
+
+//关联到github仓库
+//新建一个repository时会出现下面的代码，直接复制即可(https在github页面获取)
+$ git remote add origin https://github.com/CongliYin/CSS.git
+
+//pull
+git pull origin master
+
+//文件add到提交列表
+git add .
+
+//commit
+git commit -m "提交说明"
+
+//push
+git push --set-upstream origin master
