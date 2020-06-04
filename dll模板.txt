@@ -1,0 +1,94 @@
+1、DllDemo.h
+#pragma once
+
+extern "C" _declspec(dllexport) int g_nResult;
+extern "C" _declspec(dllexport) int __cdecl Add(int a, int b);
+
+2、DllDemo.cpp
+#include <windows.h>
+#include "DllDemo.h"
+
+#ifdef __cplusplus    // If used by C++ code, 
+extern "C" {          // we need to export the C interface
+#endif
+/////////////////////////////////////////////////////////
+
+_declspec(dllexport) int g_nResult = 0;
+_declspec(dllexport) int __cdecl Add(int a, int b)
+{
+	g_nResult = a + b;
+	return g_nResult;
+}
+
+////////////////////////////////////////////////////////
+#ifdef __cplusplus
+}
+#endif
+
+3、DllDemoTest LoadTime Dynamic Linking 又称为静态链接方式调用dll,编译时需要.lib
+#include <windows.h> 
+#include<iostream>
+#include "DllDemo.h"
+
+using namespace std;
+
+extern "C" int __cdecl Add(int a, int b);
+
+int main()
+{
+	cout << "Call Function in dll Success! Result of 3+4 is " << Add(3, 4) << endl;
+
+	Sleep(5000);
+
+	return 0;
+}
+
+4、DllDemoTest RunTime Dynamic Linking 又称为动态链接方式调用dll，可以不需要.lib
+
+#include <windows.h> 
+#include<iostream>
+#include "DllDemo.h"
+using namespace std;
+
+extern "C" _declspec(dllexport) int __cdecl Add(int a, int b);
+
+typedef int(__cdecl *ADDFUNC)(int, int);
+int main()
+{
+	
+	BOOL fFreeResult, fRunTimeLinkSuccess = FALSE;
+
+	// Get a handle to the DLL module.
+	HINSTANCE hinstLib;
+	hinstLib = LoadLibrary(TEXT("DllDemo.dll"));
+
+	// If the handle is valid, try to get the function address.
+	ADDFUNC myFunc;
+	if (hinstLib != NULL)
+	{
+		myFunc = (ADDFUNC)GetProcAddress(hinstLib, "Add");
+
+		// If the function address is valid, call the function.
+
+		if (NULL != myFunc)
+		{
+			fRunTimeLinkSuccess = TRUE;
+			cout << "Call Function in dll Success! Result of 3+4 is " << myFunc(3, 4) << endl;
+		}
+		// Free the DLL module.
+
+		fFreeResult = FreeLibrary(hinstLib);
+	}
+
+	// If unable to call the DLL function, use an alternative.
+	if (!fRunTimeLinkSuccess)
+	{
+		cout << "Message printed from executable" << endl;
+	}
+
+	Sleep(3000);
+
+	return 0;
+}
+
+
