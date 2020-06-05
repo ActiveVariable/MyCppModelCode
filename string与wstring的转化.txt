@@ -1,0 +1,28 @@
+#include<Windows.h>
+#include<string>
+
+//string转wstring
+std::wstring stringTowstring(std::string str)
+{
+	int nLen = MultiByteToWideChar(CP_ACP, 0, str.c_str, (int)(str.size()), NULL, 0);
+	WCHAR *pBuffer = new WCHAR[nLen + 1];
+	MultiByteToWideChar(CP_ACP, 0, str.c_str, (int)(str.size()), pBuffer, nLen);
+	pBuffer[nLen] = '\0';
+	std::wstring wstr;
+	wstr.append(pBuffer);
+	delete[] pBuffer;
+	return wstr;
+}
+
+//wstring转string
+std::string wstringTostring(std::wstring wstr)
+{
+	int nLen = WideCharToMultiByte(CP_ACP, 0, wstr.c_str, (int)(wstr.size()), NULL, 0, NULL, NULL);
+	CHAR *pBuffer = new CHAR[nLen + 1];
+	WideCharToMultiByte(CP_ACP, 0, wstr.c_str, (int)(wstr.size()), pBuffer, nLen, NULL, NULL);
+	pBuffer[nLen] = '\0';
+	std::string str;
+	str.append(pBuffer);
+	delete[] pBuffer;
+	return str;
+}
